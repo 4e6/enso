@@ -132,19 +132,14 @@ object Parser {
       )
     }
     def reportUnknownPrefix(prefix: String): Unit = {
-      val closestMatches =
-        Spelling.selectClosestMatches(
-          prefix,
-          opts.prefixedParameters.keys.toSeq
-        )
-      val suggestions = closestMatches match {
-        case Seq()    => ""
-        case Seq(one) => s" Did you mean `$one`?"
-        case seq =>
-          val quoted = seq.map(s => s"`$s`")
-          val inits  = quoted.init.mkString(", ")
-          s" Did you mean $inits or ${quoted.last}?"
-      }
+      val similar = Spelling
+        .selectClosestMatchesWithMetadata(prefix, opts.gatherPrefixedParameters)
+        .map(_._2)
+      val suggestions =
+        if (similar.isEmpty) ""
+        else
+          "\n\nThe most similar prefixed parameters are\n" +
+          similar.map(CLIOutput.indent + _ + "\n").mkString
 
       addError(
         s"Unknown parameter prefix $prefix." + suggestions
