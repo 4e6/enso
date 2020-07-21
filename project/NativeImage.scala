@@ -54,13 +54,14 @@ object NativeImage {
     artifactName: String
   ) =
     Def.taskDyn {
-      def rebuild(reason: String) =
+      def rebuild(reason: String) = {
+        streams.value.log.info(
+          s"$reason, forcing a rebuild."
+        )
         Def.task {
-          streams.value.log.info(
-            s"$reason, forcing a rebuild."
-          )
           actualBuild.value
         }
+      }
 
       val classpath = (Compile / fullClasspath).value
       val filesSet  = classpath.flatMap(f => f.data.allPaths.get()).toSet
